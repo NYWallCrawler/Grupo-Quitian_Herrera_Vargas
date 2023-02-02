@@ -1,0 +1,109 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define FILE_NAME "seno.wav"
+
+typedef struct {
+   char chunkID[4];
+   int chunkSize;
+   char format[4];
+} RIFFHeader;
+
+typedef struct {
+   char subchunk1ID[4];
+   int subchunk1Size;
+   short audioFormat;
+   short numChannels;
+   int sampleRate;
+   int byteRate;
+   short blockAlign;
+   short bitsPerSample;
+} FMTChunk;
+
+typedef struct {
+   char subchunk2ID[4];
+   int subchunk2Size;
+} DataChunk;
+
+int main() {
+   char o,n,opcion,p=0;
+   // Abrir el archivo WAV en modo binario
+   FILE *fp;
+   fp = fopen(FILE_NAME, "rb");
+   if (fp == NULL) {
+      printf("Error al abrir el archivo\n");
+      return 1;
+   }
+
+   // Deserializar la cabecera RIFF
+   RIFFHeader riffHeader;
+   fread(&riffHeader, sizeof(RIFFHeader), 1, fp);
+
+   // Verificar que el archivo es un archivo WAV válido
+   if (strncmp(riffHeader.chunkID, "RIFF", 4) != 0 ||
+       strncmp(riffHeader.format, "WAVE", 4) != 0) {
+      printf("El archivo no es un archivo WAV válido\n");
+      return 1;
+   }
+
+   // Deserializar el chunk FMT
+   FMTChunk fmtChunk;
+   fread(&fmtChunk, sizeof(FMTChunk), 1, fp);
+
+   // Verificar que el chunk es un chunk FMT válido
+   if (strncmp(fmtChunk.subchunk1ID, "fmt ", 4) != 0) {
+      printf("El archivo no tiene un chunk FMT válido\n");
+      return 1;
+   }
+
+   // Deserializar el chunk de datos
+   DataChunk dataChunk;
+   fread(&dataChunk, sizeof(DataChunk), 1, fp);
+
+   // Verificar que el chunk es un chunk de datos válido
+   if (strncmp(dataChunk.subchunk2ID, "data", 4) != 0) {
+      printf("El archivo no tiene un chunk de datos válido\n");
+      return 1;
+   }
+
+   // Imprimir información sobre el archivo WAV
+   printf("Tamaño del archivo: %d bytes\n", riffHeader.chunkSize);
+   printf("Formato de audio: %d\n", fmtChunk.audioFormat);
+   printf("Número de canales: %d\n", fmtChunk.numChannels);
+   printf("Tasa de muestreo: %d Hz\n", fmtChunk.sampleRate);
+   printf("Tasa de bytes: %d\n", fmtChunk.byteRate);
+   printf("Alineación de bloques: %d\n", fmtChunk.blockAlign);
+   printf("Bits por muestra: %d\n", fmtChunk.bitsPerSample);
+   printf("Tamaño de los datos: %d bytes\n", dataChunk.subchunk2Size);
+
+  
+   printf("Elija una opción del menú:\n");
+   printf("n. saltar 1 segundo\n");
+   printf("o. retroceder 1 segundo\n");
+   scanf("%d", &opcion);
+  
+  if(opcion=n)
+   {
+     p=p++;
+     if(p>=4)
+     {
+       p=0;
+     }
+   }
+  if (opcion=o)
+    {
+     p=p--;
+     if(p>=0)
+     {
+       p=0;
+     }
+   }
+  int saltosegundo=fmtChunk.byteRate;
+
+printf("EL bit inicial ahora es: %d",saltosegundo);
+  // Cerrar el archivo
+   fclose(fp);
+
+   return 0;
+}
